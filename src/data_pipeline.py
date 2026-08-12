@@ -18,3 +18,10 @@ from nba_api.stats.endpoints import leaguestandingsv3, scheduleleaguev2
 from nba_api.stats.static import teams
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+DB_PATH = DATA_DIR / "nba_cache.sqlite"
+
+CURRENT_SEASON = "2025-26"  # Update this each season format: "YYYY-YY"
+
+def _get_conn() -> sqlite3.Connection:
+    DATA_DIR.mkdir(exist_ok=True)
+    return sqlite3.connect(DB_PATH)
