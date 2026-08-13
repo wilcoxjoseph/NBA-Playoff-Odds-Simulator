@@ -28,7 +28,7 @@ def _get_conn() -> sqlite3.Connection:
 
 def fetch_standings(season: str = CURRENT_SEASON) -> pd.DataFrame:
     """ Current conference standings: wins, losses, win pct, games back, etc."""
-    resp = leaguestangingsv3.LeagueStandingsV3(season=season)
+    resp = leaguestandingsv3.LeagueStandingsV3(season=season)
     df = resp.get_data_frames()[0]
     return df
 
@@ -36,4 +36,20 @@ def fetch_full_schedule(season: str = CURRENT_SEASON) -> pd.DataFrame:
     """ Full season schedule with results for completed games."""
     resp = scheduleleaguev2.ScheduleLeagueV2(season=season)
     df = resp.get_data_frames()[0]
+    return df
+
+def cache_dataframe(df: pd.DataFrame, table_name: str) -> None:
+    """ Cache a dataframe to SQLite."""
+    conn = _get_conn()
+    df.to_sql(table_name, conn, if_exists="replace", index=False)
+    conn.close()
+
+def load_cached(table_name: str) -> pd.DataFrame | None:
+    """ Load a cached dataframe from SQLite."""
+    conn = _get_conn()
+    try:
+        df = pd.read_sql(f"SELECT * FROM {table_name}", conn)
+    except pd.errors.DatabaseError:
+        df = None
+    conn.close()
     return df
