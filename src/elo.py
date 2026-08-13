@@ -107,3 +107,17 @@ def backtest(schedule: pd.DataFrame, ratings_over_time: bool = False) -> float:
     accuracy = correct / total if total else 0.0
     print(f"Backtest accuracy: {accuracy:.1%} over {total} completed games")
     return accuracy 
+
+if __name__ == "__main__":
+    from data_pipeline import load_cached
+ 
+    schedule = load_cached("schedule")
+    if schedule is None:
+        print("No cached schedule found — run `python src/data_pipeline.py` first.")
+    else:
+        ratings = build_ratings(schedule)
+        ranked = sorted(ratings.items(), key=lambda kv: kv[1], reverse=True)
+        print("Current Elo ratings:")
+        for team_id, rating in ranked:
+            print(f"  {team_id}: {rating:.0f}")
+        backtest(schedule)
