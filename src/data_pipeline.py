@@ -25,3 +25,15 @@ CURRENT_SEASON = "2025-26"  # Update this each season format: "YYYY-YY"
 def _get_conn() -> sqlite3.Connection:
     DATA_DIR.mkdir(exist_ok=True)
     return sqlite3.connect(DB_PATH)
+
+def fetch_standings(season: str = CURRENT_SEASON) -> pd.DataFrame:
+    """ Current conference standings: wins, losses, win pct, games back, etc."""
+    resp = leaguestangingsv3.LeagueStandingsV3(season=season)
+    df = resp.get_data_frames()[0]
+    return df
+
+def fetch_full_schedule(season: str = CURRENT_SEASON) -> pd.DataFrame:
+    """ Full season schedule with results for completed games."""
+    resp = scheduleleaguev2.ScheduleLeagueV2(season=season)
+    df = resp.get_data_frames()[0]
+    return df
