@@ -64,3 +64,46 @@ def build_ratings(schedule: pd.DataFrame) -> dict[int, float]:
         ratings[away_id] = get_rating(away_id) - delta
 
     return ratings
+
+def backtest(schedule: pd.DataFrame, ratings_over_time: bool = False) -> float:
+    """ 
+    Sanity check: replay the season game-by-game, predicting each game with
+    the ratings as they stood *before* that game, and report accuracy
+    (how often the favored team actually won). A well-behaved Elo model on
+    an NBA season usually lands around 65-70% — if you're way off that,
+    double-check the column map and the home advantage constant.
+    """
+    completed = schedule[schedule[COL_STATUS] == STATUS_FINAL].copy()
+    completed = completed.sort_values(COL_GAME_DATE)
+
+    ratings: dict[int, float] = {}
+    correct = 0
+    total = 0
+
+    def get_rating(team_id: int) -> float:
+        return ratings.get(team_id, DEFAULT_RATING)
+
+    for _, game in completed.iterrows():
+        home_id = game[COL_HOME_TEAM_ID]
+        away_id = game[COL_AWAY_TEAM_ID]
+        home_score = game[COL_HOME_TEAM_SCORE]
+        away_score = game[COL_AWAY_TEAM_SCORE]
+ 
+        home_rating = get_rating(home_id) + HOME_ADVANTAGE
+        away_rating = get_rating(away_id)
+        predicted_home_win = home_rating > away_rating
+        actual_home_win = home_score > away_score
+ 
+        if predicted_home_win == actual_home_win:
+            correct += 1
+        total += 1
+ 
+        expected_home = expected_win_prob(home_rating, away_rating)
+        actual_home = 1.0 if actual_home_win else 0.0
+        delta = K_FACTOR * (actual_home - expected_home)
+        ratings[home_id] = get_rating(home_id) + delta
+        ratings[away_id] = get_rating(away_id) - delta
+ 
+    accuracy = correct / total if total else 0.0
+    print(f"Backtest accuracy: {accuracy:.1%} over {total} completed games")
+    return accuracy 
