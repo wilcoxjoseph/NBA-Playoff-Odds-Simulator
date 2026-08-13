@@ -68,3 +68,11 @@ def refresh_all(season: str = CURRENT_SEASON) -> None:
     cache_dataframe(schedule, "schedule")
     print(f" -> {len(schedule)} games cached")
 
+if __name__ == "__main__":
+    refresh_all()
+    standings = load_cached("standings")
+    schedule = load_cached("schedule")
+    print("\nStandings sample:")
+    print(standings[["TeamCity", "TeamName", "WINS", "LOSSES", "WinPCT"]].head())
+    print("\nSchedule sample:")
+    print(schedule.head())
