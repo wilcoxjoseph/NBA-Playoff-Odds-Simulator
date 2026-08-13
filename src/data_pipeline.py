@@ -53,3 +53,18 @@ def load_cached(table_name: str) -> pd.DataFrame | None:
         df = None
     conn.close()
     return df
+
+def refresh_all(season: str = CURRENT_SEASON) -> None:
+    """Pull fresh standings + schedule and overwrite the local cache."""
+    print(f"Pulling standings for {season}...")
+    standings = fetch_standings(season)
+    cache_dataframe(standings, "standings")
+    print(f" -> {len(standings)} teams cached")
+
+    time.sleep(1) # Avoid hammering the API
+
+    print(f"Pulling full schedule for {season}...")
+    schedule = fetch_full_schedule(season)
+    cache_dataframe(schedule, "schedule")
+    print(f" -> {len(schedule)} games cached")
+
