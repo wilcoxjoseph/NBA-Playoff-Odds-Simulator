@@ -101,4 +101,13 @@ def simulate_season_one(
     return result
 
 if __name__ == "__main__":
-    from data_pipeline import load_schedule 
+    from data_pipeline import load_cached
+
+    schedule = load_cached("schedule")
+    if schedule is None:
+        print("No cached schedule found - run `python src/data_pipeline.py` first.")
+    else:
+        ratings = build_ratings(schedule)
+        final_standings = simulate_season_one(schedule, ratings)
+        print("One simulated season's final standings:\n")
+        print(final.to_string(index=False))
