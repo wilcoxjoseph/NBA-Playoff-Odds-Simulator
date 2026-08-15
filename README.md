@@ -36,7 +36,7 @@ pip install -r requirements.txt
 ## Status
 - [x] Milestone 1: Data pipeline (standings, schedule, game log pull + caching)
 - [x] Milestone 2: Elo model (build + backtest)
-- [ ] Milestone 3: Single simulation of remaining season
+- [x] Milestone 3: Single simulation of remaining season
 - [ ] Milestone 4: Monte Carlo loop + play-in/bracket logic
 - [ ] Milestone 5: Output tables/probabilities
 - [ ] Milestone 6: Streamlit dashboard
