@@ -32,23 +32,41 @@ def expected_win_prob(rating_a: float, rating_b: float) -> float:
     return 1.0 / (1.0 + 10 ** ((rating_b - rating_a) / 400.0))
  
  
-def completed_games(schedule: pd.DataFrame) -> pd.DataFrame:
+def known_mask(schedule: pd.DataFrame, as_of_date: str | None = None) -> pd.Series:
     """
-    Rows where the game is final, sorted chronologically. gameStatus can come
-    back from nba_api as a string rather than an int, so we coerce before
-    comparing — otherwise the filter silently matches nothing.
+    Boolean mask of games we treat as "known" (real result available to us).
+ 
+    Normally that's just games nba_api marks Final. But when as_of_date is
+    given, we instead treat every game on/after that date as unknown —
+    regardless of whether it was actually already played — so we can rewind
+    to a point mid-season and simulate forward from there, even outside a
+    live season.
     """
     status = pd.to_numeric(schedule[COL_STATUS], errors="coerce")
-    completed = schedule[status == STATUS_FINAL].copy()
+    is_final = status == STATUS_FINAL
+ 
+    if as_of_date is None:
+        return is_final
+ 
+    game_dates = pd.to_datetime(schedule[COL_GAME_DATE], utc=True).dt.tz_localize(None)
+    cutoff = pd.to_datetime(as_of_date)
+    return is_final & (game_dates < cutoff)
+ 
+ 
+def completed_games(schedule: pd.DataFrame, as_of_date: str | None = None) -> pd.DataFrame:
+    """Known games, sorted chronologically. See known_mask for as_of_date."""
+    completed = schedule[known_mask(schedule, as_of_date)].copy()
     return completed.sort_values(COL_GAME_DATE)
  
  
-def build_ratings(schedule: pd.DataFrame) -> dict[int, float]:
+def build_ratings(schedule: pd.DataFrame, as_of_date: str | None = None) -> dict[int, float]:
     """
-    Replay all completed games in chronological order, updating Elo ratings
-    after each one. Returns {team_id: rating}.
+    Replay all known games in chronological order, updating Elo ratings
+    after each one. Returns {team_id: rating}. Pass as_of_date to build
+    ratings using only games before that date (so a simulation starting
+    there isn't cheating by learning from its own future).
     """
-    completed = completed_games(schedule)
+    completed = completed_games(schedule, as_of_date)
  
     ratings: dict[int, float] = {}
  
@@ -135,3 +153,4 @@ if __name__ == "__main__":
         for team_id, rating in ranked:
             print(f"  {team_id}: {rating:.0f}")
         backtest(schedule)
+ 
