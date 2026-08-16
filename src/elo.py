@@ -19,6 +19,7 @@ COL_HOME_TEAM_ID = "homeTeam_teamId"
 COL_AWAY_TEAM_ID = "awayTeam_teamId"
 COL_HOME_SCORE = "homeTeam_score"
 COL_AWAY_SCORE = "awayTeam_score"
+COL_WEEK_NUMBER = "weekNumber"   # 0 = preseason/playoffs/All-Star, 1+ = regular season week
 STATUS_FINAL = 3
 # ---------------------------------------------------------------------------
  
@@ -32,25 +33,41 @@ def expected_win_prob(rating_a: float, rating_b: float) -> float:
     return 1.0 / (1.0 + 10 ** ((rating_b - rating_a) / 400.0))
  
  
+def regular_season_mask(schedule: pd.DataFrame) -> pd.Series:
+    """
+    True for actual 82-game regular season games only. nba_api's full
+    schedule also includes preseason, playoffs, play-in, All-Star, and
+    exhibition games (Global Games, Rising Stars, etc.) mixed in — those
+    would double-count games and pull in non-team IDs (All-Star squads,
+    etc.) if left in. weekNumber is 0 for all of those and 1+ for every
+    real regular-season week, including in-season tournament group games
+    (which do count toward the record).
+    """
+    week = pd.to_numeric(schedule[COL_WEEK_NUMBER], errors="coerce").fillna(0)
+    return week > 0
+ 
+ 
 def known_mask(schedule: pd.DataFrame, as_of_date: str | None = None) -> pd.Series:
     """
-    Boolean mask of games we treat as "known" (real result available to us).
+    Boolean mask of games we treat as "known" (real result available to us),
+    restricted to the regular season (see regular_season_mask).
  
-    Normally that's just games nba_api marks Final. But when as_of_date is
+    Normally "known" is just games nba_api marks Final. But when as_of_date is
     given, we instead treat every game on/after that date as unknown —
     regardless of whether it was actually already played — so we can rewind
     to a point mid-season and simulate forward from there, even outside a
     live season.
     """
+    in_season = regular_season_mask(schedule)
     status = pd.to_numeric(schedule[COL_STATUS], errors="coerce")
     is_final = status == STATUS_FINAL
  
     if as_of_date is None:
-        return is_final
+        return in_season & is_final
  
     game_dates = pd.to_datetime(schedule[COL_GAME_DATE], utc=True).dt.tz_localize(None)
     cutoff = pd.to_datetime(as_of_date)
-    return is_final & (game_dates < cutoff)
+    return in_season & is_final & (game_dates < cutoff)
  
  
 def completed_games(schedule: pd.DataFrame, as_of_date: str | None = None) -> pd.DataFrame:
