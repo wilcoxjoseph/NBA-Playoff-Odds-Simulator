@@ -59,4 +59,23 @@ def run_monte_carlo(
                 made_playoffs_count[team_id] = made_playoffs_count.get(team_id, 0)
 
                 seed = int(row["seed"])
-                
+                seed_counts.setdefault(team_id, {}).setdefault(seed, 0)
+                seed_counts[team_id][seed] += 1
+
+            if (i + 1) % 500 == 0:
+                print(f" ...{i + 1}/{num_simulations} simulations done")
+
+        rows = []
+        for team_id, wins_list in win_totals.item():
+            n = len(wins_list)
+            row = {
+                "team_id": team_id,
+                "team_name": team_names[team_id],
+                "conference": conferences[team_id],
+                "avg_wins": sum(wins_list) / n,
+                "playoff_odds": made_playoffs_count.get(team_id, 0) / n
+            }
+            for seed_num in range(1,9):
+                count = seed_counts.get(team_id, {}).get(seed_num, 0)
+                row[f"seed_{seed_num}_pct"] = count / n
+            rows.append(row)
