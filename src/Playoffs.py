@@ -65,5 +65,24 @@ def apply_playoff_format(
         game1_winner = _play_in_game(seed_7, seed_8_in, ratings, rng)
         game1_loser =  seed_8_in if game1_winner == seed_7 else seed_7
 
-        
+        game2_winner = _play_in_game(seed_9,  seed_10, ratings, rng)
+        # game 2 loser is eliminated, no further use
+
+        game3_winner = _play_in_game(game1_loser, game2_winner, ratings, rng)
+
+        final_seed_7 =  game1_winner
+        final_seed_8 = game3_winner
+
+        for seed_num, team_id in enumerate(seed_1_to_6, start=1):
+            df.loc[df["team_id"] == team_id, "seed"] =  seed_num
+            df.loc[df["team_id"] == team_id, "made_playoffs"] = True
+
+        df.loc[df["team_id"] == final_seed_7, "seed"] = 7
+        df.loc[df["team_id"] == final_seed_7, "made_playoffs"] = True
+        df.loc[df["team_id"] == final_seed_8, "seed"] = 8
+        df.loc[df["team_id"] == final_seed_8, "made_playoffs"] = True
+
+    return df
+
+
 
