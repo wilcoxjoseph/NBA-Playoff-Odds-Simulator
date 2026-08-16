@@ -54,3 +54,9 @@ def run_monte_carlo(
             conferences[team_id] = row["conference"]
 
             win_totals.setdefault(team_id, []).append(row["wins"])
+
+            if row["made_playoffs"]:
+                made_playoffs_count[team_id] = made_playoffs_count.get(team_id, 0)
+
+                seed = int(row["seed"])
+                
