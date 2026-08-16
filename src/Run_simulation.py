@@ -14,7 +14,7 @@ import pandas as pd
 
 from data_pipeline import load_cached
 from elo import build_ratings
-from playoffs import apply_playoff_format
+from Playoffs import apply_playoff_format
 from simulate import simulate_season_once
 
 # Off-season safe default - see simulate.py for why. Set to None to run live
