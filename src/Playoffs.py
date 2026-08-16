@@ -52,7 +52,7 @@ def apply_playoff_format(
 
     for conference in ("East", "West"):
         conf_teams = (
-            df[df["confernce"] == conference]
+            df[df["conference"] == conference]
             .sort_values(["wins", "win_pct"], ascending=False)
             .reset_index(drop=True)  
         )
