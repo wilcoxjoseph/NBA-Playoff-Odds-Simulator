@@ -20,7 +20,8 @@ import pandas as pd
 from nba_api.stats.static import teams as static_teams
  
 from elo import COL_AWAY_SCORE, COL_AWAY_TEAM_ID, COL_HOME_SCORE, COL_HOME_TEAM_ID
-from elo import COL_STATUS, STATUS_FINAL, HOME_ADVANTAGE, build_ratings, expected_win_prob, known_mask
+from elo import COL_STATUS, STATUS_FINAL, HOME_ADVANTAGE, build_ratings, expected_win_prob
+from elo import known_mask, regular_season_mask
  
  
 def _team_name_map() -> dict[int, str]:
@@ -60,7 +61,7 @@ def simulate_season_once(
     rng = rng or random.Random()
     records = current_records(schedule, as_of_date)
  
-    remaining = schedule[~known_mask(schedule, as_of_date)]
+    remaining = schedule[regular_season_mask(schedule) & ~known_mask(schedule, as_of_date)]
  
     def get_rating(team_id: int) -> float:
         return ratings.get(team_id, 1500.0)
@@ -114,4 +115,3 @@ if __name__ == "__main__":
         final = simulate_season_once(schedule, ratings, as_of_date=AS_OF_DATE)
         print(f"One simulated season's final standings (rewound to {AS_OF_DATE}):\n")
         print(final.to_string(index=False))
- 
