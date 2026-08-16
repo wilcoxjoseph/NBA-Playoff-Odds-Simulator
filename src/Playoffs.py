@@ -45,5 +45,25 @@ def apply_playoff_format(
     rng = rng or random.Random()
     conf_map = team_id_to_conference
 
-    
+    df = final_standings.copy()
+    df["conference"] = df["team_id"].map(conf_map)
+    df["seed"] = None
+    df["made_playoffs"] = False
+
+    for conference in ("East", "West"):
+        conf_teams = (
+            df[df["confernce"] == conference]
+            .sort_values(["wins", "win_pct"], ascending=False)
+            .reset_index(drop=True)  
+        )
+        if len(conf_teams) < 10:
+            continue # incomplete data for this conference; skip rather than crash
+
+        seed_1_to_6 = conf_teams.iloc[0:6]["team_id"].tolist()
+        seed_7, seed_8_in, seed_9, seed_10 = conf_teams.iloc[6:10]["team_id"].tolist()
+
+        game1_winner = _play_in_game(seed_7, seed_8_in, ratings, rng)
+        game1_loser =  seed_8_in if game1_winner == seed_7 else seed_7
+
+        
 
