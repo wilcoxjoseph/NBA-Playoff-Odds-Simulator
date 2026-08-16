@@ -79,3 +79,21 @@ def run_monte_carlo(
                 count = seed_counts.get(team_id, {}).get(seed_num, 0)
                 row[f"seed_{seed_num}_pct"] = count / n
             rows.append(row)
+
+        result_df = pd.DataFrame(rows).sort_values(
+            ["conference", "playoff_odds"], ascending=[True, False]
+        ).reset_index(drop=True)
+        return result_df
+if __name__ == "--main__":
+    schedule = load_cached("schedule")
+    if schedule is None:
+        print("No cached schedule found - run 'python src/data_pipeline.py' first.")
+        odds = run_monte_carlo(schedule)
+
+        pd.set_option("display.width", 140)
+        for conference in ("East", "West"):
+            print(f"\n{conference}ern Conference playoff odds:")
+            conf_odds = odds[odds["conference"] == conference]
+            print(
+                conf_odds[["team_name", "avg_wins", "playoff_odds"]].assign(playoff_odds=lambda d: (d["playoff_odds"] * 100).round(1).astype(str) + "%").to_string(index=False)
+            )
