@@ -25,3 +25,25 @@ def _play_in_game(team_a: int, team_b: int, ratings: dict[int, float], rng: rand
     rating_b = ratings.get(team_b, 1500.0)
     return team_a if rng.random() < expected_win_prob(rating_a, rating_b) else team_b
 
+def apply_playoff_format(
+        final_standings: pd.DataFrame,
+        ratings: dict[int, float],
+        rng: random.Random | None = None,
+) -> pd.DataFrame:
+    """
+    Takes the output of simualte.simulate_season_once (one row per team, with
+    win/losses) and returns it with two new columns:
+        - conference: "East" / "West"
+        - seed: final seed 1-8 if they made the playoffs, else None
+        - made_playoffs: bool
+    Ties are broken by win_pct then team_id (arbitrary but deterministic) --
+    real NBA tiebreakers (head-to-head, divison record, etc.) are a lot more
+    involved and are a reasonable future improvement, not needed for 
+    season-level playoff odds.
+    """
+
+    rng = rng or random.Random()
+    conf_map = team_id_to_conference
+
+    
+
