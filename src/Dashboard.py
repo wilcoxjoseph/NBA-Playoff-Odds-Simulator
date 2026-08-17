@@ -51,7 +51,7 @@ num_simulations = st.sidebar.slider(
 run_button = st.sidebar.button("Run simulation", type="primary")
 # ---------------------------
 
-if "odds" not in st.season_state:
+if "odds" not in st.session_state:
     st.session_state.odds = None
 
 if run_button:
