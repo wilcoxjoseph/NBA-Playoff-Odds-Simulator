@@ -19,8 +19,24 @@ COL_HOME_TEAM_ID = "homeTeam_teamId"
 COL_AWAY_TEAM_ID = "awayTeam_teamId"
 COL_HOME_SCORE = "homeTeam_score"
 COL_AWAY_SCORE = "awayTeam_score"
-COL_WEEK_NUMBER = "weekNumber"   # 0 = preseason/playoffs/All-Star, 1+ = regular season week
+COL_WEEK_NUMBER = "weekNumber"   # kept for reference; not used for filtering (see regular_season_mask)
+COL_GAME_LABEL = "gameLabel"
+COL_GAME_SUBTYPE = "gameSubtype"
 STATUS_FINAL = 3
+ 
+# Every non-blank gameLabel that is NOT part of the 82-game regular season.
+# ("Emirates NBA Cup" is handled separately below since it covers both the
+# group stage, which counts, and the knockout rounds, which don't.)
+NON_REGULAR_SEASON_LABELS = {
+    "Preseason",
+    "East First Round", "West First Round",
+    "East Conf. Semifinals", "West Conf. Semifinals",
+    "East Conf. Finals", "West Conf. Finals",
+    "NBA Finals",
+    "SoFi Play-In Tournament",
+    "All-Star", "All-Star Championship",
+    "Rising Stars Semifinal", "Rising Stars Final",
+}
 # ---------------------------------------------------------------------------
  
 DEFAULT_RATING = 1500.0
@@ -36,15 +52,18 @@ def expected_win_prob(rating_a: float, rating_b: float) -> float:
 def regular_season_mask(schedule: pd.DataFrame) -> pd.Series:
     """
     True for actual 82-game regular season games only. nba_api's full
-    schedule also includes preseason, playoffs, play-in, All-Star, and
-    exhibition games (Global Games, Rising Stars, etc.) mixed in — those
-    would double-count games and pull in non-team IDs (All-Star squads,
-    etc.) if left in. weekNumber is 0 for all of those and 1+ for every
-    real regular-season week, including in-season tournament group games
-    (which do count toward the record).
+    schedule also includes preseason, playoffs, play-in, and All-Star
+    weekend (all tagged with a specific gameLabel), plus the NBA Cup
+    knockout rounds (same gameLabel as the Cup group stage, but a
+    different gameSubtype) — all of those get excluded here.
     """
-    week = pd.to_numeric(schedule[COL_WEEK_NUMBER], errors="coerce").fillna(0)
-    return week > 0
+    label = schedule[COL_GAME_LABEL].fillna("").astype(str).str.strip()
+    subtype = schedule[COL_GAME_SUBTYPE].fillna("").astype(str).str.strip()
+ 
+    excluded_by_label = label.isin(NON_REGULAR_SEASON_LABELS)
+    excluded_cup_knockout = (label == "Emirates NBA Cup") & (subtype == "in-season-knockout")
+ 
+    return ~(excluded_by_label | excluded_cup_knockout)
  
  
 def known_mask(schedule: pd.DataFrame, as_of_date: str | None = None) -> pd.Series:
