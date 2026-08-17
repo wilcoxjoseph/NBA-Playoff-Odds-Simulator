@@ -44,4 +44,50 @@ as_of_date = st.sidebar.date_input(
     ),
 )
 
+num_simulations = st.side.slider.date_input(
+    "Number of simulations", min_value=100, max_value=5000, value=1000, step=100
+)
 
+run_button = st.sidebar.button("Run simulation", type="primary")
+# ---------------------------
+
+if "odds" not in st.season_state:
+    st.session_state.odds = None
+
+if run_button:
+    with st.spinner(f"Running {num_simulations} simulated seasons..."):
+        st.session_state.odds = run_monte_carlo(
+            schedule,
+            num_simulations=num_simulations,
+            as_of_date=as_of_date.isoformat(),
+        )
+
+odds = st.session_state.odds
+
+if odds is None:
+    st.info("Set your options in the sidebar and click **Run simulation** to get started.")
+    st.stop()
+
+# ---- results ----
+col1, col2 = st.columns(2)
+
+for col, conference in zip((col1, col2), ("East", "West")):
+    with col:
+        st.subheader(f"{conference}ern Conference")
+        conf_odds = odds[odds["conference"] == conference].sort_values("playoff_odds", ascending=True)
+
+        fig = px.bar(
+            conf_odds,
+            x="playoff_odds",
+            y="team_name",
+            orientation="h",
+            labels={"playoff_odds": "Playoff odds", "team_name": ""},
+            text=conf_odds["playoff_odds"].apply(lambda p: f"{p * 100:.1f}%"),
+            range_x=[0, 1],
+        )
+        fig.update_traces(textposition="outside")
+        fig.update_layout(height=500, margin=dict(l=10, r=10, t=10, b=10))
+        st.plotly_chart(fig, use_container_width=True)
+
+st.subheader("Full results")
+display_df = odds[["team_name", "conference", "avg_wins", "playoof_odds"]]
