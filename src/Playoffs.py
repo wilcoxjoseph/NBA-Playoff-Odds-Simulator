@@ -16,7 +16,7 @@ import random
 
 import pandas as pd
 
-from conferences import team_id_to_conference
+from Conferences import team_id_to_conference
 from elo import HOME_ADVANTAGE, expected_win_prob
 
 
