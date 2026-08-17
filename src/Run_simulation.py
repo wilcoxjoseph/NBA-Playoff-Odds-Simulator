@@ -8,6 +8,8 @@ Run directly:
 
 from __future__ import annotations
  
+from pathlib import Path
+ 
 import numpy as np
 import pandas as pd
  
@@ -135,6 +137,10 @@ if __name__ == "__main__":
         print(f"Running {NUM_SIMULATIONS} simulations from as_of_date={AS_OF_DATE}...")
         odds = run_monte_carlo(schedule)
  
+        out_path = Path(__file__).resolve().parent.parent / "data" / "playoff_odds.csv"
+        odds.to_csv(out_path, index=False)
+        print(f"\nFull results saved to {out_path}")
+ 
         pd.set_option("display.width", 140)
         for conference in ("East", "West"):
             print(f"\n{conference}ern Conference playoff odds:")
@@ -144,4 +150,3 @@ if __name__ == "__main__":
                 .assign(playoff_odds=lambda d: (d["playoff_odds"] * 100).round(1).astype(str) + "%")
                 .to_string(index=False)
             )
- 
