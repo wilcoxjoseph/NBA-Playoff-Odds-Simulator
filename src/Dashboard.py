@@ -44,7 +44,7 @@ as_of_date = st.sidebar.date_input(
     ),
 )
 
-num_simulations = st.side.slider.date_input(
+num_simulations = st.sidebar.slider(
     "Number of simulations", min_value=100, max_value=5000, value=1000, step=100
 )
 
