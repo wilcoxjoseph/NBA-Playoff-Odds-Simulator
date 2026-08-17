@@ -90,4 +90,8 @@ for col, conference in zip((col1, col2), ("East", "West")):
         st.plotly_chart(fig, use_container_width=True)
 
 st.subheader("Full results")
-display_df = odds[["team_name", "conference", "avg_wins", "playoof_odds"]]
+display_df = odds[["team_name", "conference", "avg_wins", "playoof_odds"]].copy()
+display_df["avg_wins"] = display_df["avg_wins"].round(1)
+display_df["playoff_odds"] = (display_df["playoff_odds"] * 100).round(1).astype(str) + "%"
+display_df.columns = ["Team", "Conference", "Avg. Wins", "Playoff Odds"]
+st.dataframe(display_df, use_container_width=True, hide_index=True)
