@@ -38,8 +38,8 @@ pip install -r requirements.txt
 - [x] Milestone 2: Elo model (build + backtest)
 - [x] Milestone 3: Single simulation of remaining season
 - [x] Milestone 4: Monte Carlo loop + play-in/bracket logic
-- [ ] Milestone 5: Output tables/probabilities
-- [ ] Milestone 6: Streamlit dashboard
+- [x] Milestone 5: Output tables/probabilities
+- [x] Milestone 6: Streamlit dashboard
 ## Note on running this
 `nba_api` calls `stats.nba.com` directly, so it needs to run somewhere with
 normal internet access (your own machine) — it won't work from a sandboxed
